@@ -4,9 +4,8 @@ import core.BaseAPI;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterTest;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,16 +23,12 @@ public class FetchDoctorsListAndVerify {
     List<String> doctorList;
     List<String> subsequentDoctorList;
 
-    @AfterClass
-    public void preTest() throws IOException {
-        Files.deleteIfExists(Paths.get("doctorsList.json"));
-        Files.deleteIfExists(Paths.get("doctorsList2.json"));
-    }
 
     //Doctors API endpoint to fetch the first 20 doctors and store them in a json file
-    @Test(priority = 1)
+    @Test
     public void getDoctorsListAndSaveInJson() throws IOException {
         response1 = given().when().get(BaseAPI.URL+BaseAPI.GET_DOCTORS+".json");
+        response1.then().statusCode(200);
         JsonPath jsonPath = new JsonPath(response1.prettyPrint());
         lastKey = jsonPath.getString("lastKey");
         FileWriter file = new FileWriter("doctorsList1.json");
@@ -44,9 +39,10 @@ public class FetchDoctorsListAndVerify {
     }
 
     //Subsequent-Doctors API endpoint to fetch the 20 doctors and compare id's with response1
-    @Test(priority = 2)
+    @Test(dependsOnMethods={"getDoctorsListAndSaveInJson"})
     public void getDoctorsSubsequentListAndCompare() throws IOException {
         response2 = given().when().get(BaseAPI.URL+BaseAPI.GET_DOCTORS+"-"+lastKey+".json");
+        response2.then().statusCode(200);
         FileWriter file = new FileWriter("doctorsList2.json");
         file.write(String.valueOf(response2.prettyPrint()));
         file.flush();
@@ -54,6 +50,12 @@ public class FetchDoctorsListAndVerify {
         subsequentDoctorList = response2.jsonPath().getList("doctors.id");
         doctorList.retainAll(subsequentDoctorList);
         assertEquals(0,doctorList.size());
+    }
+
+    @AfterClass
+    public void preTest() throws IOException {
+        Files.deleteIfExists(Paths.get("doctorsList1.json"));
+        Files.deleteIfExists(Paths.get("doctorsList2.json"));
     }
 
 }
