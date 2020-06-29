@@ -7,7 +7,7 @@
 
 ### Approach in solving
 My initial approach started with exploring the App manually to list out the challenges in the flow
-* SMS Validation is the on challenging part where I've accessed the notifications to grab the pin
+* SMS Validation is the only challenging part where I've accessed the notifications to grab the pin
 
 ### Setup
 * Install [Appium Server]
